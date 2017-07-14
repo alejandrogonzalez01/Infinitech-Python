@@ -80,15 +80,17 @@ def list_restaurants():
     # Creates list so names don't repeat.
     global restList
     mem = [] 
-    counter = 1
+    counter = 0
     while counter < size:
         name = restList[counter]
-        if name not in mem:
+        if name not in mem and "Total" not in name:
+            print name
             mem.append(name)
             counter += 1
+
         else:
             counter += 1
-
+            
     # Sorts Alphabetically 
     mem.sort()
 
@@ -142,7 +144,7 @@ def list_by_status(S):
     
 if __name__ == '__main__':   
     
-
+    analyze()
     # Menu for console use
     while True:
         
@@ -163,7 +165,7 @@ if __name__ == '__main__':
             print '5) Go Back'
             option2 = int(raw_input(':'))
 
-            catOptions == ['ORDERED', 'DEAD', 'CALLED', 'PENDING']
+            catOptions = ['ORDERED', 'DEAD', 'CALLED', 'PENDING']
             if option2 < 5:
                 list_by_status(catOptions[option2 - 1])
             else:
