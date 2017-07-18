@@ -1,5 +1,5 @@
 import gspread
-import datetime as cal
+import time
 from oauth2client.service_account import ServiceAccountCredentials
 
 ### Interactive client with Google API ###
@@ -33,12 +33,14 @@ custNameCategory = 5
 statusCategory = 6
 
 unwantedIndexes = []
+dataSize = len(data)
 
 
 
-def parseData():
+def parse_data():
     
     print 'Parsing Data'
+    data = sheet.get_all_values()
     
     def filler(L, C):
         for row in data:
@@ -66,89 +68,58 @@ def parseData():
 def list_restaurants():
 
     ## Creates list without repeating names and sorts ##
-    mem = []
+    memNames = []
+    memCount = []
     for item in restNameList:
-        if item not in mem and 'Total' not in item:
-            mem.append(item)
-    mem.sort()
+        if item not in memNames and 'Total' not in item:
+            memNames.append(item)
+    memNames.sort()
+
+    ## Counts how many times name appears in list ##
+
+    def counter(name):
+        counter = 0
+        for item in restNameList:
+            if item == name:
+                counter += 1
+            else:
+                continue
+
+
+        return counter
+        
+    
+    for item in memNames:
+        memCount.append(counter(item))
+        
+        
 
     ## Prints all names ##
-    for item in mem:
-        print item
-
-
-
-    
     counter = 0
-    while counter < len(data):
-        if counter in unwantedIndexes:
+    while counter < len(memNames):
+        if memCount[counter] < 10:
+            print '[ ' + str(memCount[counter]) + '] ' + memNames[counter]
             counter += 1
-        elif counter not in unwantedIndexes and data[counter] not in mem:
-            mem.append(data[counter])
-            counter += 1
-
-    for item in mem:
-        if S in item:
-            print item
-
-def menu():
-    firstMenu = True
-    secondMenu = True
-
-    while firstMenu is True:
-        print ''
-        print '1) List all Restaurants'
-        print '2) List by Status'
-        print '3) Add Call Data'
-
-        choice= int(raw_input(":"))
-        if choice == 1:
-            list_restaurants()
-        elif choice == 2:
-            while secondMenu is True:
-                print ''
-                print '1) Ordered'
-                print '2) Pending'
-                print '3) Dead'
-                print '4) Called'
-                
-                choice2 = int(raw_input(":"))
-                lazy_me = [1,2,3,4]
-
-                if choice2 not in lazy_me:
-                    print 'Invalid option'
-                elif choice2 in lazy_me:
-                    choicesStatus = ['ORDERED', 'PENDING', 'DEAD', 'CALLED']
-                    list_by_status(choicesStatus[choice2 - 1])
-                else:
-                    menu()
-
-        elif choice == 3:
-            add_call()
         else:
-            print 'That option is invalid'
-
+            print '[' + str(memCount[counter]) + '] ' + memNames[counter]
+         
 
 def add_call():
     ##### TEST #####
-    date = '7/17/2017'
-
+    date = time.strftime('%m/%d/%y')
+    data = sheet.get_all_values()
+    dataSize = len(data)
     
     print 'Input data'
     insert = raw_input(":")
     input_data = insert.split(',')
     input_data.insert(0, date)
     input_data.append('PENDING')
-    sheet.insert_row(input_data, len(data) + 1)
+    sheet.insert_row(input_data, dataSize + 1)
+
+    dataSize += 1
     
-
     
-if __name__ == '__main__':
-    parseData()
-    menu()
-
-        
-
 def list_by_status(S):
     ## Remove unwanted lines ##
     mem = []
@@ -165,21 +136,40 @@ def list_by_status(S):
     for item in mem:
         if S in item:
             print item
+    
+    
 
 def menu():
     firstMenu = True
     secondMenu = True
-
+    ## Menu1 Options##
     while firstMenu is True:
         print ''
         print '1) List all Restaurants'
         print '2) List by Status'
         print '3) Add Call Data'
 
-        choice= int(raw_input(":"))
+        
+        
+        
+        ## Checks for termination ##
+        
+        try:
+            choice= raw_input(": ")
+            if choice == '':
+                break
+            choice = int(choice)
+        except:
+            print 'Invalid Option'
+        
+            
+
+        ## Menu1 ##
         if choice == 1:
             list_restaurants()
         elif choice == 2:
+
+            ## Menu2 Options
             while secondMenu is True:
                 print ''
                 print '1) Ordered'
@@ -187,37 +177,32 @@ def menu():
                 print '3) Dead'
                 print '4) Called'
                 
-                choice2 = int(raw_input(":"))
+                ## Checks for termination ##
+                try:
+                    choice2 = raw_input(': ')
+                    if choice2 == '':
+                        break
+                    choice2 = int(choice2)
+                except:
+                    print 'Invalid Option'
+                    
+                ## Menu2 ##
                 lazy_me = [1,2,3,4]
 
-                if choice2 not in lazy_me:
-                    print 'Invalid option'
-                elif choice2 in lazy_me:
+                
+                if choice2 in lazy_me:
                     choicesStatus = ['ORDERED', 'PENDING', 'DEAD', 'CALLED']
                     list_by_status(choicesStatus[choice2 - 1])
-                else:
-                    menu()
+                
 
         elif choice == 3:
             add_call()
-        else:
-            print 'That option is invalid'
+        
 
 
-def add_call():
-    ##### TEST #####
-    date = '7/17/2017'
 
-    
-    print 'Input data'
-    insert = raw_input(":")
-    input_data = insert.split(',')
-    input_data.insert(0, date)
-    input_data.append('PENDING')
-    sheet.insert_row(input_data, len(data) + 1)
-    
 
-    
+
 if __name__ == '__main__':
-    parseData()
+    parse_data()
     menu()
